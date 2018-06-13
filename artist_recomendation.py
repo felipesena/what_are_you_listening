@@ -1,4 +1,4 @@
-import requests, sys, threading, json
+import requests, sys, threading, json, os
 from bs4 import BeautifulSoup
 
 #Create by Felipe Sena
@@ -12,7 +12,11 @@ class Recomendation(object):
     users = []
     artists = []
 
-    def getartistrecomendation(self, artist): #Método principal onde chama outros métodos para buscar artistas relacionados
+    def getartistrecomendation(self, artist):
+        #Verify if directory to save json exists
+        if not os.path.exists(self.filename.split("/")[0]):
+            os.makedirs(self.filename.split("/")[0])
+
         self.url = self.url % self.formatname(artist) + "%d"
         last_page = 10
 
@@ -40,7 +44,7 @@ class Recomendation(object):
         with open(self.filename, 'w') as file:
             json.dump(Recomendation.artists, file)
 
-    def getartists(self, user): #Busca top artistas baseadas nos usuários buscados
+    def getartists(self, user):
         url = self.user_url % user
         response = requests.get(url)
         plain_text = response.text
@@ -56,7 +60,7 @@ class Recomendation(object):
                         artistname = span.find_next('a').attrs['title']
                         Recomendation.artists.append(artistname)
 
-    def getartistlisteners(self, page): #Busca usuários que escutam o artista em questão
+    def getartistlisteners(self, page): #Search users that listening the artist
         response = requests.get(self.url % page)
         plain_text = response.text
         soup = BeautifulSoup(plain_text, "html.parser")
@@ -80,6 +84,6 @@ class Recomendation(object):
 if __name__ == '__main__':
     artist = sys.argv[1:]
     recomendation = Recomendation()
-    recomendation.formatname(artist)
+    recomendation.getartistrecomendation(artist)
 
 
